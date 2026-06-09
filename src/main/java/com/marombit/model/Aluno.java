@@ -1,6 +1,8 @@
 package com.marombit.model;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -17,14 +19,22 @@ public class Aluno {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
 
     private Long id;
+
+
+    @NotBlank(message = "O nome é obrigatório")
     private String nome;
 
+    @NotBlank(message = "O CPF é obrigatório")
     @Column(unique = true)
     private String cpf;
+    @NotNull(message = "A data de nascimento é obrigatória")
     private LocalDate dtNascimento;
+
+    @NotNull(message = "A matrícula ativa é obrigatória")
     private Boolean matriculaAtiva;
 
     @Enumerated(EnumType.STRING)
+    @NotNull(message = "O plano é obrigatório")
     private Plano plano;
 
 

@@ -1,7 +1,9 @@
 package com.marombit.controller;
 
+import com.marombit.exception.CpfJaCadastradoException;
 import com.marombit.model.Aluno;
 import com.marombit.repository.AlunoRepository;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -22,13 +24,17 @@ public class AlunoController {
     }
 
     @PostMapping
-    public ResponseEntity<Aluno> criarAluno(@RequestBody Aluno aluno){
+    public ResponseEntity<Aluno> criarAluno(@Valid @RequestBody Aluno aluno){
+        if (repository.existsByCpf(aluno.getCpf())){
+            throw new CpfJaCadastradoException(aluno.getCpf());
+        }
+
         var salvo = repository.save(aluno);
         return ResponseEntity.status(201).body(salvo);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Aluno> atualizar(@PathVariable Long id, @RequestBody Aluno aluno){
+    public ResponseEntity<Aluno> atualizar(@PathVariable Long id, @Valid @RequestBody Aluno aluno){
         Optional<Aluno> alunoExist = repository.findById(id);
 
         if (alunoExist.isPresent()){
