@@ -3,6 +3,7 @@ package com.marombit.controller;
 import com.marombit.exception.CpfJaCadastradoException;
 import com.marombit.model.Aluno;
 import com.marombit.repository.AlunoRepository;
+import com.marombit.service.AlunoService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -16,71 +17,43 @@ import java.util.Optional;
 public class AlunoController {
 
     @Autowired
-    private AlunoRepository repository;
+    private AlunoService alunoService;
 
     @GetMapping
     public List<Aluno> listarTodos(){
-        return repository.findAll();
+        return alunoService.listarTodos();
     }
 
     @PostMapping
     public ResponseEntity<Aluno> criarAluno(@Valid @RequestBody Aluno aluno){
-        if (repository.existsByCpf(aluno.getCpf())){
-            throw new CpfJaCadastradoException(aluno.getCpf());
-        }
-
-        var salvo = repository.save(aluno);
+        Aluno salvo = alunoService.criarAluno(aluno);
         return ResponseEntity.status(201).body(salvo);
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<Aluno> atualizar(@PathVariable Long id, @Valid @RequestBody Aluno aluno){
-        Optional<Aluno> alunoExist = repository.findById(id);
-
-        if (alunoExist.isPresent()){
-            Aluno alunoAtualizado = alunoExist.get();
-            alunoAtualizado.setNome(aluno.getNome());
-            alunoAtualizado.setCpf(aluno.getCpf());
-            alunoAtualizado.setDtNascimento(aluno.getDtNascimento());
-            alunoAtualizado.setPlano(aluno.getPlano());
-
-            Aluno salvo = repository.save(alunoAtualizado);
-            return ResponseEntity.ok(salvo);
-        }
-
-        return ResponseEntity.notFound().build();
+        Aluno atualizado = alunoService.atualizar(id,aluno);
+        return ResponseEntity.ok(atualizado);
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Aluno> Deletar(@PathVariable Long id) {
-
-        if (!repository.existsById(id)){
-            return ResponseEntity.notFound().build();
-        }
-
-        repository.deleteById(id);
-
-
+    public ResponseEntity<Void> Deletar(@PathVariable Long id) {
+        alunoService.Deletar(id);
         return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<Aluno> buscarAlunoPorID (@PathVariable Long id){
-        Optional<Aluno> alunoExist = repository.findById(id);
-
-        return alunoExist.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.noContent().build());
-
+       return ResponseEntity.ok(alunoService.buscarAlunoPorID(id));
     }
+
 
     @GetMapping("/{id}/status")
     public ResponseEntity<String> verificarMatricula (@PathVariable Long id){
-        Optional<Aluno> alunoExist = repository.findById(id);
+        Aluno alunoExist = alunoService.buscarAlunoPorID(id);
 
-        if (!alunoExist.isPresent()){
-            return ResponseEntity.noContent().build();
-        }
 
-        if (alunoExist.get().getMatriculaAtiva()) {
+        if (alunoExist.getMatriculaAtiva()) {
                 return ResponseEntity.ok("Matricula_Ativa");
         }
 
